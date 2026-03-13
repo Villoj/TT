@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FF XP Tracker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;900&display=swap');
+
+        :root {
+            --primary: #ff5100;
+            --bg-glass: rgba(15, 5, 5, 0.95);
+            --text-main: #ffffff;
+            --text-dim: #aaaaaa;
+            --border: 1px solid rgba(255, 81, 0, 0.4);
+            --green: #00e676;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Rajdhani', sans-serif;
+            background-color: transparent;
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+        }
+
+        #app-container {
+            position: fixed;
+            top: 50px;
+            left: 50px;
+            width: 260px;
+            background: var(--bg-glass);
+            border: var(--border);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #b71c1c, #e65100, #b71c1c);
+            background-size: 200% 200%;
+            animation: fireBreath 6s ease-in-out infinite;
+            height: 40px;
+            padding: 0 10px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255,81,0,0.3);
+        }
+
+        @keyframes fireBreath {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .header-title {
+            font-weight: 900;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #content {
+            padding: 10px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .label {
+            font-size: 0.65em;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .value {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .value.highlight {
+            color: var(--primary);
+        }
+
+        .value.bxp {
+            color: var(--green);
+        }
+
+        .level-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .progress-container {
+            position: relative;
+            height: 12px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 4px;
+            margin: 8px 0;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.6em;
+            text-shadow: 1px 1px 2px black;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.05);
+            padding: 6px;
+            border-radius: 4px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-box .value {
+            font-size: 1em;
+        }
+
+        .stat-box .label {
+            font-size: 0.55em;
+        }
+
+        /* Streak Section */
+        .streak-section {
+            background: rgba(0, 230, 118, 0.1);
+            border: 1px solid rgba(0, 230, 118, 0.3);
+            border-radius: 4px;
+            padding: 8px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .streak-title {
+            font-size: 0.7em;
+            color: var(--green);
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .streak-value {
+            font-size: 1.5em;
+            font-weight: 900;
+            color: var(--green);
+        }
+
+        .streak-input {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .streak-input input {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #444;
+            color: #fff;
+            padding: 4px;
+            border-radius: 4px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.85em;
+            text-align: center;
+        }
+
+        .streak-input button {
+            background: rgba(0,230,118,0.3);
+            border: 1px solid var(--green);
+            color: var(--green);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: bold;
+        }
+
+        .streak-input button:hover {
+            background: var(--green);
+            color: #000;
+        }
+
+        /* Calculator */
+        .calc-section {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .calc-title {
+            font-size: 0.7em;
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .calc-row {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 5px;
+        }
+
+        .calc-row select, .calc-row input {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #444;
+            color: #fff;
+            padding: 4px;
+            border-radius: 4px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.8em;
+        }
+
+        .calc-row select option {
+            background: #222;
+        }
+
+        .quick-btns {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 5px;
+        }
+
+        .quick-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #ccc;
+            font-size: 0.7em;
+            padding: 3px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: bold;
+        }
+
+        .quick-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .calc-result {
+            font-size: 0.75em;
+            color: var(--text-dim);
+            line-height: 1.3;
+        }
+
+        .calc-result b {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <header id="drag-handle">
+            <span class="header-title">🚒 FF Tracker</span>
+        </header>
+
+        <div id="content">
+            <div class="level-row">
+                <div>
+                    <div class="label">Level</div>
+                    <div class="value highlight" id="level">0</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="label">Total XP</div>
+                    <div class="value" id="xp">0</div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+                <div class="progress-text" id="progress-text">0%</div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="value" id="fires">0</div>
+                    <div class="label">Fires Done</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value" id="avgXP">0</div>
+                    <div class="label">Avg XP/Fire</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value bxp" id="nextLevel">0</div>
+                    <div class="label">To Next Lvl</div>
+                </div>
+            </div>
+
+            <!-- Streak Section -->
+            <div class="streak-section">
+                <div class="streak-title">🔥 Streak</div>
+                <div class="streak-value" id="streak">0</div>
+                <div class="streak-input">
+                    <input type="number" id="streakInput" placeholder="Manual streak" value="0">
+                    <button onclick="updateStreak()">Set</button>
+                    <button onclick="addStreak()" style="background:rgba(255,81,0,0.3);border-color:var(--primary);color:var(--primary);">+1</button>
+                </div>
+            </div>
+
+            <!-- Calculator -->
+            <div class="calc-section">
+                <div class="calc-title">📊 XP Calculator</div>
+                <div class="calc-row">
+                    <select id="tier">
+                        <option value="1">Tier 1</option>
+                        <option value="2">Tier 2</option>
+                        <option value="3">Tier 3</option>
+                        <option value="4">Tier 4</option>
+                        <option value="5">Tier 5</option>
+                        <option value="6" selected>Tier 6 (100+)</option>
+                    </select>
+                    <select id="diff">
+                        <option value="1">Diff 1</option>
+                        <option value="2">Diff 2</option>
+                        <option value="3">Diff 3</option>
+                        <option value="4">Diff 4</option>
+                        <option value="5" selected>Diff 5</option>
+                    </select>
+                </div>
+                <div class="calc-row">
+                    <input type="number" id="targetXP" placeholder="Target XP">
+                </div>
+                <div class="quick-btns">
+                    <button class="quick-btn" onclick="setTarget(100000)">100K</button>
+                    <button class="quick-btn" onclick="setTarget(1000000)">1M</button>
+                    <button class="quick-btn" onclick="setTarget(10000000)">10M</button>
+                </div>
+                <div class="calc-result" id="calc-result">Complete fires to calculate...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const KEYS = {
+            XP: "exp_ems_fire",
+            BXP: "exp_token_a|ems|fire"
+        };
+
+        let state = {
+            xp: 0,
+            startXP: null,
+            lastXP: -1,
+            fires: 0,
+            sessionXP: 0,
+            avgXP: 0,
+            streak: 0,
+            manualStreak: 0
+        };
+
+        // XP Formula: (tier * 5 + 7 + diff) * (1 + 0.2 * ((streak - 1) / 100) ^ 1.5)
+        function calcXPPerFire(tier, diff, streak) {
+            const base = tier * 5 + 7 + diff;
+            const mult = 1 + 0.2 * Math.pow((streak - 1) / 100, 1.5);
+            return Math.floor(base * mult);
+        }
+
+        function getLevel(xp) {
+            return Math.floor((Math.sqrt(1 + 8 * xp / 5) - 1) / 2);
+        }
+
+        function getXPForLevel(lvl) {
+            return Math.floor((5 * lvl * (lvl + 1)) / 2);
+        }
+
+        function fmt(num) {
+            return Math.floor(num).toLocaleString();
+        }
+
+        // Request data from game
+        function requestData() {
+            if (window.parent) {
+                try {
+                    window.parent.postMessage({
+                        type: "getNamedData",
+                        keys: [KEYS.XP, "inventory", "name"]
+                    }, "*");
+                } catch(e) {}
+            }
+        }
+
+        requestData();
+        setInterval(requestData, 1500);
+
+        // Listen for data
+        window.addEventListener('message', (e) => {
+            let d = e.data;
+            if (d && d.type === 'data' && d.data) d = d.data;
+            if (!d) return;
+
+            // Try to find streak from game data
+            for (let k in d) {
+                if (k.toLowerCase().includes('streak') && k.toLowerCase().includes('fire')) {
+                    state.streak = parseInt(d[k]) || 0;
+                    if (state.manualStreak === 0) {
+                        document.getElementById('streakInput').value = state.streak;
+                    }
+                    break;
+                }
+            }
+
+            // XP
+            let xp = d[KEYS.XP];
+            if (!xp && d.inventory) {
+                try {
+                    const inv = JSON.parse(d.inventory);
+                    xp = inv[KEYS.XP];
+                } catch(e) {}
+            }
+
+            if (xp) updateXP(xp);
+            updateCalc();
+        });
+
+        function updateXP(newXP) {
+            if (state.startXP === null) {
+                state.startXP = newXP;
+                state.lastXP = newXP;
+                state.xp = newXP;
+                render();
+                return;
+            }
+
+            if (state.lastXP > -1 && newXP > state.lastXP) {
+                const diff = newXP - state.lastXP;
+                if (diff > 5) {
+                    state.sessionXP += diff;
+                    state.fires++;
+                    state.avgXP = state.sessionXP / state.fires;
+                    // Auto-add streak when fire completed
+                    state.manualStreak++;
+                    document.getElementById('streakInput').value = state.manualStreak;
+                }
+                state.lastXP = newXP;
+            }
+            state.xp = newXP;
+            render();
+        }
+
+        function render() {
+            const lvl = getLevel(state.xp);
+            const nextXP = getXPForLevel(lvl + 1);
+            const prevXP = getXPForLevel(lvl);
+            const pct = Math.min(100, Math.max(0, ((state.xp - prevXP) / (nextXP - prevXP)) * 100));
+
+            document.getElementById('level').textContent = lvl;
+            document.getElementById('xp').textContent = fmt(state.xp);
+            document.getElementById('fires').textContent = state.fires;
+            document.getElementById('avgXP').textContent = fmt(state.avgXP);
+            document.getElementById('nextLevel').textContent = fmt(nextXP - state.xp);
+            document.getElementById('progress-bar').style.width = pct + '%';
+            document.getElementById('progress-text').textContent = pct.toFixed(1) + '%';
+            
+            const currentStreak = state.manualStreak || state.streak;
+            document.getElementById('streak').textContent = currentStreak;
+        }
+
+        // Streak controls
+        function updateStreak() {
+            state.manualStreak = parseInt(document.getElementById('streakInput').value) || 0;
+            document.getElementById('streak').textContent = state.manualStreak;
+            updateCalc();
+        }
+
+        function addStreak() {
+            state.manualStreak++;
+            document.getElementById('streakInput').value = state.manualStreak;
+            document.getElementById('streak').textContent = state.manualStreak;
+            updateCalc();
+        }
+
+        // Calculator
+        document.getElementById('tier').addEventListener('change', updateCalc);
+        document.getElementById('diff').addEventListener('change', updateCalc);
+        document.getElementById('targetXP').addEventListener('input', updateCalc);
+
+        function setTarget(n) {
+            document.getElementById('targetXP').value = n;
+            updateCalc();
+        }
+
+        function updateCalc() {
+            const tier = parseInt(document.getElementById('tier').value);
+            const diff = parseInt(document.getElementById('diff').value);
+            const streak = state.manualStreak || state.streak || 500;
+            const target = parseInt(document.getElementById('targetXP').value) || 0;
+
+            const xpPerFire = calcXPPerFire(tier, diff, streak);
+
+            if (state.fires === 0) {
+                document.getElementById('calc-result').innerHTML = 'Complete fires to calculate...';
+                return;
+            }
+
+            if (target > state.xp) {
+                const remaining = target - state.xp;
+                const fires = Math.ceil(remaining / xpPerFire);
+                document.getElementById('calc-result').innerHTML = 
+                    `<b>${fmt(remaining)}</b> XP remaining<br>~<b>${fires}</b> fires (${xpPerFire} XP/fire)`;
+            } else if (target > 0) {
+                document.getElementById('calc-result').innerHTML = '<span style="color:#00e676">Target reached! ✅</span>';
+            } else {
+                document.getElementById('calc-result').textContent = `Streak: ${streak} | ${xpPerFire} XP/fire`;
+            }
+        }
+
+        // Drag
+        const elmnt = document.getElementById("app-container");
+        const header = document.getElementById("drag-handle");
+        let isDragging = false, startX, startY, initialLeft, initialTop;
+
+        header.addEventListener("mousedown", dragStart);
+
+        function dragStart(e) {
+            e.preventDefault();
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            const rect = elmnt.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+            document.addEventListener("mousemove", dragMove);
+            document.addEventListener("mouseup", dragEnd);
+        }
+
+        function dragMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            elmnt.style.left = (initialLeft + dx) + "px";
+            elmnt.style.top = (initialTop + dy) + "px";
+        }
+
+        function dragEnd() {
+            if (!isDragging) return;
+            isDragging = false;
+            document.removeEventListener("mousemove", dragMove);
+            document.removeEventListener("mouseup", dragEnd);
+
+            const rect = elmnt.getBoundingClientRect();
+            localStorage.setItem('ff_app_pos', JSON.stringify({ left: rect.left, top: rect.top }));
+        }
+
+        // Restore position
+        const savedPos = JSON.parse(localStorage.getItem('ff_app_pos'));
+        if (savedPos) {
+            elmnt.style.left = savedPos.left + 'px';
+            elmnt.style.top = savedPos.top + 'px';
+        }
+    </script>
+</body>
+</html>
