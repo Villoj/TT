@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FF XP Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: transparent;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            padding: 10px;
+        }
+        
+        .app {
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid #ff5100;
+            border-radius: 8px;
+            padding: 12px;
+            height: 100%;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,81,0,0.3);
+            margin-bottom: 10px;
+        }
+        
+        .title { font-weight: bold; color: #ff5100; font-size: 14px; }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .stat {
+            background: rgba(255,255,255,0.05);
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .stat-value.highlight { color: #ff5100; }
+        .stat-value.green { color: #00e676; }
+        
+        .stat-label {
+            font-size: 9px;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        .xp-bar {
+            margin: 12px 0;
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff5100, #ff8c00);
+            transition: width 0.3s;
+        }
+        
+        .xp-text {
+            text-align: center;
+            font-size: 10px;
+            color: #888;
+            margin-top: 4px;
+        }
+        
+        .calc {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .calc-title {
+            font-size: 11px;
+            color: #ff5100;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+        
+        .calc-row {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+        
+        .calc select, .calc input {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #444;
+            color: #fff;
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        
+        .calc select option { background: #222; }
+        
+        .calc result {
+            font-size: 11px;
+            color: #888;
+        }
+        
+        .calc result span {
+            color: #ff5100;
+            font-weight: bold;
+        }
+        
+        .streak-box {
+            background: rgba(0, 230, 118, 0.1);
+            border: 1px solid rgba(0, 230, 118, 0.3);
+            border-radius: 4px;
+            padding: 6px;
+            text-align: center;
+            margin-top: 8px;
+        }
+        
+        .streak-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #00e676;
+        }
+        
+        .streak-label {
+            font-size: 9px;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        .info {
+            font-size: 9px;
+            color: #666;
+            text-align: center;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <div class="header" id="header">
+            <span class="title">🚒 FF XP</span>
+            <span id="level" style="color:#ff5100;font-weight:bold;">Lv 0</span>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value highlight" id="xp">0</div>
+                <div class="stat-label">Total XP</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="fires">0</div>
+                <div class="stat-label">Fires Done</div>
+            </div>
+        </div>
+        
+        <div class="xp-bar">
+            <div class="xp-fill" id="xpFill"></div>
+        </div>
+        <div class="xp-text" id="xpText">0% to next level</div>
+        
+        <div class="streak-box">
+            <div class="streak-value" id="streak">0</div>
+            <div class="streak-label">Current Streak</div>
+        </div>
+        
+        <div class="calc">
+            <div class="calc-title">📊 XP Calculator</div>
+            <div class="calc-row">
+                <select id="tier">
+                    <option value="1">Tier 1</option>
+                    <option value="2">Tier 2</option>
+                    <option value="3">Tier 3</option>
+                    <option value="4">Tier 4</option>
+                    <option value="5">Tier 5</option>
+                    <option value="6" selected>Tier 6 (100+)</option>
+                </select>
+                <select id="diff">
+                    <option value="1">Diff 1</option>
+                    <option value="2">Diff 2</option>
+                    <option value="3">Diff 3</option>
+                    <option value="4">Diff 4</option>
+                    <option value="5" selected>Diff 5</option>
+                </select>
+            </div>
+            <div class="calc-row">
+                <input type="number" id="targetXP" placeholder="Target XP">
+            </div>
+            <div class="calc-row">
+                <button onclick="setTarget(100000)" style="flex:1;background:rgba(255,255,255,0.1);border:1px solid #444;color:#fff;padding:4px;border-radius:4px;cursor:pointer;font-size:10px;">100K</button>
+                <button onclick="setTarget(1000000)" style="flex:1;background:rgba(255,255,255,0.1);border:1px solid #444;color:#fff;padding:4px;border-radius:4px;cursor:pointer;font-size:10px;">1M</button>
+                <button onclick="setTarget(10000000)" style="flex:1;background:rgba(255,255,255,0.1);border:1px solid #444;color:#fff;padding:4px;border-radius:4px;cursor:pointer;font-size:10px;">10M</button>
+            </div>
+            <div class="calc result" id="calcResult">Complete fires to calculate...</div>
+        </div>
+        
+        <div class="info" id="debug">Keys: 0 | Streak: ?</div>
+    </div>
+
+    <script>
+        const KEYS = {
+            XP: "exp_ems_fire",
+            BXP: "exp_token_a|ems|fire"
+        };
+        
+        let state = {
+            xp: 0,
+            startXP: null,
+            lastXP: -1,
+            fires: 0,
+            sessionXP: 0,
+            avgXP: 0,
+            streak: 0
+        };
+        
+        // XP Formula: (tier * 5 + 7 + difficulty) * (1 + 0.2 * ((streak - 1) / 100) ^ 1.5)
+        function calcXP(tier, diff, streak) {
+            const base = tier * 5 + 7 + diff;
+            const mult = 1 + 0.2 * Math.pow((streak - 1) / 100, 1.5);
+            return Math.floor(base * mult);
+        }
+        
+        function getLevel(xp) {
+            return Math.floor((Math.sqrt(1 + 8 * xp / 5) - 1) / 2);
+        }
+        
+        function getXPForLevel(lvl) {
+            return Math.floor((5 * lvl * (lvl + 1)) / 2);
+        }
+        
+        function fmt(num) {
+            return Math.floor(num).toLocaleString();
+        }
+        
+        // Request data
+        function requestData() {
+            if (window.parent) {
+                try {
+                    window.parent.postMessage({
+                        type: "getNamedData",
+                        keys: [KEYS.XP, "inventory", "name"]
+                    }, "*");
+                } catch(e) {}
+            }
+        }
+        
+        requestData();
+        setInterval(requestData, 1500);
+        
+        // Listen
+        window.addEventListener('message', (e) => {
+            let d = e.data;
+            if (d && d.type === 'data' && d.data) d = d.data;
+            if (!d) return;
+            
+            document.getElementById('debug').textContent = `Keys: ${Object.keys(d).length}`;
+            
+            // Find streak
+            for (let k in d) {
+                if (k.toLowerCase().includes('streak') && k.toLowerCase().includes('fire')) {
+                    state.streak = parseInt(d[k]) || 0;
+                    break;
+                }
+            }
+            
+            // XP
+            let xp = d[KEYS.XP];
+            if (!xp && d.inventory) {
+                try {
+                    const inv = JSON.parse(d.inventory);
+                    xp = inv[KEYS.XP];
+                } catch(e) {}
+            }
+            
+            if (xp) updateXP(xp);
+            updateCalc();
+        });
+        
+        function updateXP(newXP) {
+            if (state.startXP === null) {
+                state.startXP = newXP;
+                state.lastXP = newXP;
+                state.xp = newXP;
+                render();
+                return;
+            }
+            
+            if (state.lastXP > -1 && newXP > state.lastXP) {
+                const diff = newXP - state.lastXP;
+                if (diff > 5) {
+                    state.sessionXP += diff;
+                    state.fires++;
+                    state.avgXP = state.sessionXP / state.fires;
+                }
+                state.lastXP = newXP;
+            }
+            state.xp = newXP;
+            render();
+        }
+        
+        function render() {
+            const lvl = getLevel(state.xp);
+            const nextXP = getXPForLevel(lvl + 1);
+            const prevXP = getXPForLevel(lvl);
+            const pct = Math.min(100, Math.max(0, ((state.xp - prevXP) / (nextXP - prevXP)) * 100));
+            
+            document.getElementById('level').textContent = 'Lv ' + lvl;
+            document.getElementById('xp').textContent = fmt(state.xp);
+            document.getElementById('fires').textContent = state.fires;
+            document.getElementById('xpFill').style.width = pct + '%';
+            document.getElementById('xpText').textContent = pct.toFixed(1) + '% - ' + fmt(nextXP - state.xp) + ' to Lv ' + (lvl + 1);
+            document.getElementById('streak').textContent = state.streak;
+            document.getElementById('debug').textContent = `Avg XP/fire: ${fmt(state.avgXP)} | Streak: ${state.streak}`;
+        }
+        
+        // Calculator
+        document.getElementById('tier').addEventListener('change', updateCalc);
+        document.getElementById('diff').addEventListener('change', updateCalc);
+        document.getElementById('targetXP').addEventListener('input', updateCalc);
+        
+        function setTarget(n) {
+            document.getElementById('targetXP').value = n;
+            updateCalc();
+        }
+        
+        function updateCalc() {
+            const tier = parseInt(document.getElementById('tier').value);
+            const diff = parseInt(document.getElementById('diff').value);
+            const streak = state.streak || 500;
+            const target = parseInt(document.getElementById('targetXP').value) || 0;
+            
+            const xpPerFire = calcXP(tier, diff, streak);
+            
+            if (state.fires === 0) {
+                document.getElementById('calcResult').innerHTML = 'Complete fires to calculate...';
+                return;
+            }
+            
+            if (target > state.xp) {
+                const remaining = target - state.xp;
+                const fires = Math.ceil(remaining / xpPerFire);
+                document.getElementById('calcResult').innerHTML = 
+                    `<span>${fmt(remaining)} XP remaining</span><br>~${fires} fires (at ${xpPerFire} XP/fire)`;
+            } else if (target > 0) {
+                document.getElementById('calcResult').innerHTML = '<span style="color:#00e676">Target reached! ✅</span>';
+            } else {
+                document.getElementById('calcResult').textContent = `Avg: ${xpPerFire} XP/fire (Tier ${tier}, Diff ${diff}, Streak ${streak})`;
+            }
+        }
+        
+        // Drag
+        const app = document.getElementById('app');
+        const hdr = document.getElementById('header');
+        let dragging = false, sx, sy, ox, oy;
+        
+        hdr.addEventListener('mousedown', e => {
+            if (e.target.tagName === 'SPAN') return;
+            dragging = true;
+            sx = e.clientX;
+            sy = e.clientY;
+            ox = app.offsetLeft;
+            oy = app.offsetTop;
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', stop);
+        });
+        
+        function move(e) {
+            if (!dragging) return;
+            app.style.position = 'fixed';
+            app.style.left = (ox + e.clientX - sx) + 'px';
+            app.style.top = (oy + e.clientY - sy) + 'px';
+        }
+        
+        function stop() {
+            dragging = false;
+            document.removeEventListener('mousemove', move);
+            document.removeEventListener('mouseup', stop);
+        }
+    </script>
+</body>
+</html>
