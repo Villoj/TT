@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FF XP Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700&display=swap');
+        
+        html, body {
+            background: transparent !important;
+            overflow: hidden;
+        }
+        
+        body {
+            font-family: 'Oxanium', sans-serif;
+            min-height: 100vh;
+            padding: 15px;
+            color: #fff;
+            user-select: none;
+        }
+        
+        .app-container {
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 30, 0.92);
+            border: 1px solid rgba(255, 70, 90, 0.4);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: rgba(255, 70, 90, 0.15);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ff4660;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .title::before { content: '🚒 '; }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .tab {
+            padding: 4px 10px;
+            font-size: 9px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .tab:hover { background: rgba(255,255,255,0.1); }
+        
+        .tab.active {
+            background: rgba(255, 70, 90, 0.3);
+            border-color: rgba(255, 70, 90, 0.5);
+            color: #ff4660;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .ctrl-btn {
+            width: 20px;
+            height: 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        
+        .ctrl-btn.min { background: rgba(255,200,50,0.3); color: #ffc832; }
+        .ctrl-btn.max { background: rgba(92,184,92,0.3); color: #5cb85c; }
+        .ctrl-btn.close { background: rgba(255,107,107,0.3); color: #ff6b6b; }
+        .ctrl-btn:hover { opacity: 0.8; }
+        
+        .content {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .view { display: none; }
+        .view.active { display: block; }
+        
+        .status {
+            font-size: 9px;
+            padding: 3px 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .status.ff { background: rgba(255, 70, 90, 0.3); color: #ff4660; }
+        .status.other { background: rgba(255, 200, 50, 0.3); color: #ffc832; }
+        .status.nodata { background: rgba(255,100,100,0.3); color: #ff6b6b; }
+        
+        .main-xp { text-align: center; margin: 12px 0; }
+        
+        .xp-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 70, 90, 0.5);
+            line-height: 1;
+        }
+        
+        .xp-label {
+            font-size: 9px;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        
+        .progress-container { margin: 12px 0; }
+        
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 8px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 5px;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4660, #ff6b6b);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .goal-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .stat-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 5px;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .stat-value { font-size: 16px; font-weight: 600; color: #fff; }
+        .stat-value.highlight { color: #ff4660; }
+        
+        .stat-label {
+            font-size: 7px;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+        
+        .job-info {
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(255, 70, 90, 0.1);
+            border-radius: 5px;
+        }
+        
+        .job-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+        }
+        
+        .job-label { color: rgba(255,255,255,0.6); }
+        .job-value { color: #fff; font-weight: 600; }
+        
+        .not-ff, .no-data {
+            text-align: center;
+            padding: 20px 10px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .not-ff .icon, .no-data .icon { font-size: 30px; margin-bottom: 6px; }
+        .not-ff .text, .no-data .text { font-size: 10px; }
+        
+        /* MONITOR VIEW */
+        .monitor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .monitor-title {
+            font-size: 11px;
+            color: #5bc0de;
+            font-weight: 600;
+        }
+        
+        .monitor-stats {
+            font-size: 9px;
+            color: rgba(255,255,255,0.4);
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        
+        .data-item {
+            background: rgba(255,255,255,0.03);
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+        }
+        
+        .data-key {
+            color: #5bc0de;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .data-value {
+            color: rgba(255,255,255,0.7);
+            font-family: monospace;
+            word-break: break-all;
+        }
+        
+        .data-item.exp { background: rgba(92, 184, 92, 0.1); border: 1px solid rgba(92, 184, 92, 0.2); }
+        .data-item.exp .data-key { color: #5cb85c; }
+        
+        .data-item.highlight { background: rgba(255, 70, 90, 0.15); border: 1px solid rgba(255, 70, 90, 0.3); }
+        .data-item.highlight .data-key { color: #ff4660; }
+        
+        .exp-list {
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(92, 184, 92, 0.1);
+            border-radius: 5px;
+            border: 1px solid rgba(92, 184, 92, 0.2);
+        }
+        
+        .exp-title {
+            font-size: 9px;
+            color: #5cb85c;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        
+        .exp-item {
+            font-size: 9px;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .exp-item:last-child { border-bottom: none; }
+        .exp-item .key { color: #5bc0de; }
+        .exp-item .val { color: #fff; font-weight: 600; }
+        
+        .last-update {
+            font-size: 7px;
+            color: rgba(255,255,255,0.3);
+            text-align: center;
+            margin-top: 4px;
+        }
+        
+        .footer {
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer span { font-size: 7px; color: rgba(255,255,255,0.3); }
+        
+        .instructions {
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(255, 200, 50, 0.1);
+            border-radius: 5px;
+            font-size: 8px;
+            color: rgba(255,200,50,0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container" id="appContainer">
+        <div class="header">
+            <div class="title">FF XP Tracker</div>
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('tracker')" id="tabTracker">Tracker</div>
+                <div class="tab" onclick="switchTab('monitor')" id="tabMonitor">Monitor</div>
+            </div>
+            <div class="controls">
+                <button class="ctrl-btn min" onclick="doAction('pin')" title="Pin">📌</button>
+                <button class="ctrl-btn close" onclick="doAction('close')" title="Close">×</button>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="status nodata" id="jobStatus">No Data</span>
+                <span id="updateTime"></span>
+            </div>
+            
+            <!-- TRACKER VIEW -->
+            <div class="view active" id="viewTracker">
+                <div id="ffContent">
+                    <div class="main-xp">
+                        <div class="xp-value" id="xpValue">0</div>
+                        <div class="xp-label">Firefighter XP</div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-labels">
+                            <span>0</span>
+                            <span id="progressPercent">0%</span>
+                            <span>1M</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="goal-info">
+                        <div class="stat-box">
+                            <div class="stat-value highlight" id="jobsRemaining">-</div>
+                            <div class="stat-label">Jobs Left</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="xpRemaining">-</div>
+                            <div class="stat-label">XP to Goal</div>
+                        </div>
+                    </div>
+                    
+                    <div class="job-info">
+                        <div class="job-row">
+                            <span class="job-label">Current Job</span>
+                            <span class="job-value" id="currentJob">-</span>
+                        </div>
+                        <div class="job-row" style="margin-top: 5px;">
+                            <span class="job-label">User ID</span>
+                            <span class="job-value" id="userId">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="notFF" class="not-ff" style="display: none;">
+                    <div class="icon">🔥</div>
+                    <div class="text">Switch to Firefighter job<br>to track XP</div>
+                </div>
+                
+                <div class="instructions">
+                    <strong>NOTE:</strong> This app must be hosted on a web server to work in FiveM. Open in browser first to test.
+                </div>
+            </div>
+            
+            <!-- MONITOR VIEW -->
+            <div class="view" id="viewMonitor">
+                <div class="monitor-header">
+                    <span class="monitor-title">📡 Live Data Monitor</span>
+                    <span class="monitor-stats" id="dataCount">0 keys</span>
+                </div>
+                
+                <div class="exp-list" id="expList">
+                    <div class="exp-title">Experience Keys (exp_*)</div>
+                    <div id="expItems">No exp data yet...</div>
+                </div>
+                
+                <div class="data-grid" id="dataGrid" style="margin-top: 10px;"></div>
+                
+                <div class="last-update" id="lastUpdate">Waiting for data...</div>
+            </div>
+            
+            <div class="footer">
+                <span>Goal: 1,000,000 XP</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GOAL_XP = 1000000;
+        const DEFAULT_AVG_XP = 250;
+        
+        let playerData = {};
+        let avgXP = DEFAULT_AVG_XP;
+        let lastMessageTime = null;
+        
+        // Send action to game
+        function doAction(action) {
+            if (window.invoke) {
+                window.invoke(action);
+            }
+        }
+        
+        // Tab switching
+        function switchTab(tab) {
+            document.getElementById('tabTracker').classList.toggle('active', tab === 'tracker');
+            document.getElementById('tabMonitor').classList.toggle('active', tab === 'monitor');
+            document.getElementById('viewTracker').classList.toggle('active', tab === 'tracker');
+            document.getElementById('viewMonitor').classList.toggle('active', tab === 'monitor');
+        }
+        
+        // Request initial data on load
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (window.invoke) {
+                    window.invoke('getData');
+                }
+            }, 1000);
+        });
+        
+        // ===== DATA HANDLING =====
+        
+        // Listen for messages from game
+        window.addEventListener('message', function(event) {
+            processData(event.data, 'message');
+        });
+        
+        // Global callback functions
+        window.updateData = function(data) { processData(data, 'updateData'); };
+        window.setData = function(data) { processData(data, 'setData'); };
+        window.onData = function(data) { processData(data, 'onData'); };
+        window.data = function(data) { processData(data, 'data'); };
+        
+        // Fallback: poll for data
+        setInterval(() => {
+            if (window.invoke) {
+                window.invoke('getData');
+            }
+        }, 3000);
+        
+        function processData(data, source) {
+            if (!data) return;
+            
+            let actualData = data;
+            
+            // Unwrap data if needed
+            if (data.data) actualData = data.data;
+            if (data.type === 'dataUpdate') actualData = data.data || data;
+            if (data.type === 'data') actualData = data.data || data;
+            
+            if (typeof actualData === 'object') {
+                playerData = { ...playerData, ...actualData };
+                lastMessageTime = new Date();
+                updateDisplay();
+            }
+        }
+        
+        function updateDisplay() {
+            const userId = playerData.user_id || playerData.userId || '-';
+            const jobName = playerData.job_name || playerData.job || '-';
+            
+            document.getElementById('userId').textContent = userId;
+            document.getElementById('currentJob').textContent = jobName;
+            
+            const isFF = isFirefighter(playerData);
+            const hasData = Object.keys(playerData).length > 0;
+            
+            const statusEl = document.getElementById('jobStatus');
+            
+            if (!hasData) {
+                statusEl.textContent = 'No Data';
+                statusEl.className = 'status nodata';
+            } else if (isFF) {
+                statusEl.textContent = 'FIREFIGHTER';
+                statusEl.className = 'status ff';
+            } else {
+                statusEl.textContent = jobName;
+                statusEl.className = 'status other';
+            }
+            
+            document.getElementById('ffContent').style.display = isFF ? 'block' : 'none';
+            document.getElementById('notFF').style.display = (hasData && !isFF) ? 'block' : 'none';
+            
+            if (isFF) {
+                const ffXP = getFFXP(playerData);
+                
+                if (ffXP > 0) {
+                    document.getElementById('xpValue').textContent = ffXP.toLocaleString();
+                    
+                    const xpRemaining = GOAL_XP - ffXP;
+                    const jobsRemaining = Math.ceil(xpRemaining / avgXP);
+                    const progress = Math.min((ffXP / GOAL_XP) * 100, 100);
+                    
+                    document.getElementById('xpRemaining').textContent = xpRemaining.toLocaleString();
+                    document.getElementById('jobsRemaining').textContent = jobsRemaining.toLocaleString();
+                    document.getElementById('progressPercent').textContent = progress.toFixed(1) + '%';
+                    document.getElementById('progressFill').style.width = progress + '%';
+                }
+            }
+            
+            updateMonitor();
+            
+            if (lastMessageTime) {
+                document.getElementById('updateTime').textContent = lastMessageTime.toLocaleTimeString();
+            }
+        }
+        
+        function isFirefighter(data) {
+            const job = (data?.job || '').toLowerCase();
+            const jobName = (data?.job_name || '').toLowerCase();
+            const subjob = (data?.subjob || '').toLowerCase();
+            
+            return job === 'firefighter' || jobName === 'firefighter' || 
+                   job.includes('fire') || subjob.includes('fire');
+        }
+        
+        function getFFXP(data) {
+            if (!data) return 0;
+            
+            const possibleKeys = [
+                'exp_job_firefighter',
+                'exp_firefighter', 
+                'exp_job_fire',
+                'firefighter_xp',
+                'firefighterexp',
+                'xp_firefighter',
+                'ff_xp',
+                'exp_group_firefighter'
+            ];
+            
+            for (const key of possibleKeys) {
+                if (data[key] !== undefined) {
+                    return parseInt(data[key]) || 0;
+                }
+            }
+            
+            // Search all keys
+            for (const key in data) {
+                const lowerKey = key.toLowerCase();
+                if ((lowerKey.includes('fire') || lowerKey.includes('ff')) && 
+                    (lowerKey.includes('xp') || lowerKey.includes('exp'))) {
+                    return parseInt(data[key]) || 0;
+                }
+            }
+            
+            return 0;
+        }
+        
+        function updateMonitor() {
+            const keys = Object.keys(playerData).sort();
+            const expKeys = keys.filter(k => k.startsWith('exp_'));
+            
+            document.getElementById('dataCount').textContent = `${keys.length} keys`;
+            
+            document.getElementById('lastUpdate').textContent = lastMessageTime 
+                ? `Last update: ${lastMessageTime.toLocaleTimeString()}`
+                : 'Waiting for data...';
+            
+            // Exp list
+            const expItems = document.getElementById('expItems');
+            if (expKeys.length > 0) {
+                expItems.innerHTML = expKeys.map(key => {
+                    const isFF = key.toLowerCase().includes('fire');
+                    return `<div class="exp-item ${isFF ? 'highlight' : ''}">
+                        <span class="key">${key}</span>
+                        <span class="val">${playerData[key]}</span>
+                    </div>`;
+                }).join('');
+            } else {
+                expItems.innerHTML = '<div style="color:rgba(255,255,255,0.4)">No exp_ keys received yet</div>';
+            }
+            
+            // Data grid
+            const dataGrid = document.getElementById('dataGrid');
+            const displayKeys = keys.slice(0, 30);
+            
+            dataGrid.innerHTML = displayKeys.map(key => {
+                const isExp = key.startsWith('exp_');
+                const isFF = key.toLowerCase().includes('fire');
+                const val = playerData[key];
+                const valStr = typeof val === 'object' ? JSON.stringify(val).substring(0, 25) : val;
+                
+                return `<div class="data-item ${isExp ? 'exp' : ''} ${isFF ? 'highlight' : ''}">
+                    <div class="data-key">${key}</div>
+                    <div class="data-value">${valStr}</div>
+                </div>`;
+            }).join('');
+            
+            if (keys.length > 30) {
+                dataGrid.innerHTML += `<div class="data-item"><div class="data-key">...and ${keys.length - 30} more</div></div>`;
+            }
+        }
+    </script>
+</body>
+</html>
