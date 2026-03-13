@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FF XP Tracker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;900&display=swap');
+        
+        :root {
+            --primary: #ff5100;
+            --bg-glass: rgba(15, 5, 5, 0.95);
+            --text-main: #ffffff;
+            --text-dim: #aaaaaa;
+            --border: 1px solid rgba(255, 81, 0, 0.4);
+            --green: #00e676;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Rajdhani', sans-serif;
+            background-color: transparent;
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+        }
+        
+        #app-container {
+            position: fixed;
+            top: 50px;
+            left: 50px;
+            width: 280px;
+            background: var(--bg-glass);
+            border: var(--border);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 180px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #b71c1c, #e65100, #b71c1c);
+            background-size: 200% 200%;
+            animation: fireBreath 6s ease-in-out infinite;
+            height: 45px;
+            padding: 0 10px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255,81,0,0.3);
+        }
+        
+        @keyframes fireBreath {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .header-title {
+            font-weight: 900;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .ctrl-btn {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #ccc;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7em;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: bold;
+        }
+        
+        .ctrl-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        #content {
+            padding: 12px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .label {
+            font-size: 0.7em;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+        
+        .value {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        
+        .value.highlight {
+            color: var(--primary);
+        }
+        
+        .value.bxp {
+            color: var(--green);
+        }
+        
+        .progress-container {
+            position: relative;
+            height: 14px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 4px;
+            margin: 8px 0;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.65em;
+            text-shadow: 1px 1px 2px black;
+            font-weight: bold;
+            z-index: 2;
+        }
+        
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .stat-box {
+            background: rgba(255,255,255,0.05);
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-box .value {
+            font-size: 1.1em;
+        }
+        
+        .stat-box .label {
+            font-size: 0.6em;
+        }
+        
+        .calc-section {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .calc-input {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #444;
+            color: white;
+            padding: 6px;
+            border-radius: 4px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.9em;
+            box-sizing: border-box;
+            margin-top: 5px;
+        }
+        
+        .calc-input:focus {
+            outline: 1px solid var(--primary);
+        }
+        
+        .quick-btns {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        .quick-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #ccc;
+            font-size: 0.7em;
+            padding: 4px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: bold;
+        }
+        
+        .quick-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .calc-result {
+            margin-top: 8px;
+            font-size: 0.8em;
+            color: var(--text-dim);
+            line-height: 1.4;
+        }
+        
+        .calc-result b {
+            color: var(--primary);
+        }
+        
+        .fires-left {
+            font-size: 0.75em;
+            color: var(--text-dim);
+            text-align: center;
+            margin-top: 5px;
+        }
+        
+        .fires-left b {
+            color: var(--primary);
+        }
+        
+        .mini-btn {
+            font-size: 0.65em;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #aaa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .mini-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <header id="drag-handle">
+            <span class="header-title">🚒 FF Tracker</span>
+            <div class="header-controls">
+                <button class="mini-btn" onclick="toggleMini()">MINI</button>
+            </div>
+        </header>
+        
+        <div id="content">
+            <div class="label">Current Level</div>
+            <div class="value highlight" id="level">0</div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+                <div class="progress-text" id="progress-text">0%</div>
+            </div>
+            
+            <div class="fires-left" id="fires-to-level">
+                Complete fires to see progress...
+            </div>
+            
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="value" id="current-xp">0</div>
+                    <div class="label">Current XP</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value bxp" id="tokens">0</div>
+                    <div class="label">BXP Tokens</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value" id="fires-done">0</div>
+                    <div class="label">Fires Done</div>
+                </div>
+            </div>
+            
+            <div class="calc-section">
+                <div class="label">Target Calculator</div>
+                <input type="number" class="calc-input" id="target-input" placeholder="Enter target XP">
+                
+                <div class="quick-btns">
+                    <button class="quick-btn" onclick="setTarget(100000)">100K</button>
+                    <button class="quick-btn" onclick="setTarget(1000000)">1M</button>
+                    <button class="quick-btn" onclick="setTarget(10000000)">10M</button>
+                </div>
+                
+                <div class="calc-result" id="calc-result">
+                    Complete fires to enable calculator
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Keys
+        const KEYS = {
+            XP: "exp_ems_fire",
+            BXP: "exp_token_a|ems|fire"
+        };
+        
+        // State
+        const STATE = {
+            currentXP: 0,
+            currentBXP: 0,
+            startXP: null,
+            lastKnownXP: -1,
+            sessionFires: 0,
+            sessionXP: 0,
+            avgXP: 0
+        };
+        
+        // Load saved target
+        const savedTarget = localStorage.getItem('ff_target_xp');
+        if (savedTarget) document.getElementById('target-input').value = savedTarget;
+        
+        // Request data from game
+        function requestData() {
+            if (window.parent) {
+                try {
+                    window.parent.postMessage({
+                        type: "getNamedData",
+                        keys: [KEYS.XP, KEYS.BXP, "inventory", "name"]
+                    }, "*");
+                } catch(e) {}
+            }
+        }
+        
+        requestData();
+        setInterval(requestData, 1500);
+        
+        // Listen for data
+        window.addEventListener('message', (event) => {
+            let payload = event.data;
+            if (payload && payload.type === 'data' && payload.data) {
+                payload = payload.data;
+            }
+            if (!payload) return;
+            
+            // Name
+            if (payload.name) {
+                document.title = "FF - " + payload.name;
+            }
+            
+            // XP
+            if (typeof payload[KEYS.XP] === 'number') {
+                updateXP(payload[KEYS.XP]);
+            } else if (payload.inventory) {
+                try {
+                    const inv = typeof payload.inventory === 'string' ? JSON.parse(payload.inventory) : payload.inventory;
+                    if (inv && inv[KEYS.XP]) updateXP(inv[KEYS.XP]);
+                } catch(e) {}
+            }
+            
+            // BXP Tokens
+            let bxpFound = -1;
+            if (payload[KEYS.BXP]) {
+                bxpFound = extractBXP(payload[KEYS.BXP]);
+            } else if (payload.inventory) {
+                try {
+                    const inv = typeof payload.inventory === 'string' ? JSON.parse(payload.inventory) : payload.inventory;
+                    if (inv && inv[KEYS.BXP]) bxpFound = extractBXP(inv[KEYS.BXP]);
+                } catch(e) {}
+            }
+            if (bxpFound >= 0) {
+                STATE.currentBXP = bxpFound;
+                document.getElementById('tokens').innerText = formatNum(STATE.currentBXP);
+            }
+        });
+        
+        function extractBXP(val) {
+            if (typeof val === 'number') return val;
+            if (typeof val === 'object' && val.amount) return val.amount;
+            return -1;
+        }
+        
+        function updateXP(newXP) {
+            if (STATE.startXP === null) {
+                STATE.startXP = newXP;
+                STATE.lastKnownXP = newXP;
+                STATE.currentXP = newXP;
+                renderDisplay();
+                return;
+            }
+            
+            if (STATE.lastKnownXP > -1 && newXP > STATE.lastKnownXP) {
+                const diff = newXP - STATE.lastKnownXP;
+                if (diff > 5) { // Filter tiny ticks
+                    STATE.sessionXP += diff;
+                    STATE.sessionFires++;
+                    STATE.avgXP = STATE.sessionXP / STATE.sessionFires;
+                }
+                STATE.lastKnownXP = newXP;
+            }
+            STATE.currentXP = newXP;
+            renderDisplay();
+        }
+        
+        function renderDisplay() {
+            const lvl = getLevelFromXP(STATE.currentXP);
+            const xp = STATE.currentXP;
+            const nextLvlXP = getXPFromLevel(lvl + 1);
+            const prevLvlXP = getXPFromLevel(lvl);
+            const percent = Math.min(100, Math.max(0, ((xp - prevLvlXP) / (nextLvlXP - prevLvlXP)) * 100));
+            
+            document.getElementById('level').innerText = lvl;
+            document.getElementById('current-xp').innerText = formatNum(xp);
+            document.getElementById('progress-bar').style.width = percent + "%";
+            document.getElementById('progress-text').innerText = percent.toFixed(1) + "%";
+            document.getElementById('fires-done').innerText = STATE.sessionFires;
+            
+            // Fires to next level
+            const xpNeeded = nextLvlXP - xp;
+            if (STATE.sessionFires > 0) {
+                const firesToLevel = Math.ceil(xpNeeded / STATE.avgXP);
+                document.getElementById('fires-to-level').innerHTML = 
+                    `~<b>${formatNum(firesToLevel)} fires</b> to Level ${lvl + 1}`;
+            } else {
+                document.getElementById('fires-to-level').innerText = 
+                    "Complete fires to see progress...";
+            }
+            
+            runCalculator();
+        }
+        
+        // Formulas
+        function getLevelFromXP(xp) {
+            return Math.floor((Math.sqrt(1 + 8 * xp / 5) - 1) / 2);
+        }
+        
+        function getXPFromLevel(level) {
+            return Math.floor((5 * level * (level + 1)) / 2);
+        }
+        
+        function formatNum(num) {
+            return Math.floor(num).toLocaleString("en-US");
+        }
+        
+        // Calculator
+        const calcInput = document.getElementById('target-input');
+        calcInput.addEventListener('input', runCalculator);
+        
+        function setTarget(amount) {
+            document.getElementById('target-input').value = amount;
+            runCalculator();
+        }
+        
+        function runCalculator() {
+            const val = document.getElementById('target-input').value;
+            const el = document.getElementById('calc-result');
+            
+            localStorage.setItem('ff_target_xp', val);
+            
+            if (STATE.avgXP === 0) {
+                el.innerHTML = "<i>Complete fires to enable calc...</i>";
+                return;
+            }
+            if (!val) {
+                el.innerText = "Enter XP amount above";
+                return;
+            }
+            
+            let inputVal = parseInt(val);
+            let targetXP = inputVal;
+            
+            // If input is level, get XP for that level
+            if (inputVal < 200) {
+                let lvlXP = getXPFromLevel(inputVal);
+                if (lvlXP > STATE.currentXP) targetXP = lvlXP;
+            }
+            
+            if (targetXP > STATE.currentXP) {
+                const diff = targetXP - STATE.currentXP;
+                const fires = Math.ceil(diff / STATE.avgXP);
+                el.innerHTML = `Remaining: <b>${formatNum(diff)} XP</b><br><span style="color:var(--primary)">Est. Fires: <b>${formatNum(fires)}</b></span>`;
+            } else {
+                el.innerHTML = `<span style="color:var(--green)">Target reached! ✅</span>`;
+            }
+        }
+        
+        // Mini mode
+        function toggleMini() {
+            alert("Mini mode - drag to reposition");
+        }
+        
+        // Drag functionality
+        const elmnt = document.getElementById("app-container");
+        const header = document.getElementById("drag-handle");
+        let isDragging = false, startX, startY, initialLeft, initialTop;
+        
+        header.addEventListener("mousedown", dragStart);
+        
+        function dragStart(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            e.preventDefault();
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            const rect = elmnt.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+            document.addEventListener("mousemove", dragMove);
+            document.addEventListener("mouseup", dragEnd);
+        }
+        
+        function dragMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            elmnt.style.left = (initialLeft + dx) + "px";
+            elmnt.style.top = (initialTop + dy) + "px";
+        }
+        
+        function dragEnd() {
+            if (!isDragging) return;
+            isDragging = false;
+            document.removeEventListener("mousemove", dragMove);
+            document.removeEventListener("mouseup", dragEnd);
+            
+            const rect = elmnt.getBoundingClientRect();
+            localStorage.setItem('ff_app_pos', JSON.stringify({ left: rect.left, top: rect.top }));
+        }
+        
+        // Restore position
+        const savedPos = JSON.parse(localStorage.getItem('ff_app_pos'));
+        if (savedPos) {
+            elmnt.style.left = savedPos.left + 'px';
+            elmnt.style.top = savedPos.top + 'px';
+        }
+    </script>
+</body>
+</html>
