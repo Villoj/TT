@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FF XP Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Oxanium', sans-serif;
+            background: transparent;
+            min-height: 100vh;
+            padding: 15px;
+            color: #fff;
+            user-select: none;
+        }
+        
+        .container {
+            background: rgba(10, 15, 30, 0.85);
+            border: 1px solid rgba(255, 70, 90, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ff4660;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .title::before {
+            content: '🚒 ';
+        }
+        
+        .status {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .status.ff {
+            background: rgba(255, 70, 90, 0.3);
+            color: #ff4660;
+        }
+        
+        .status.other {
+            background: rgba(255, 200, 50, 0.3);
+            color: #ffc832;
+        }
+        
+        .main-xp {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .xp-value {
+            font-size: 42px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 70, 90, 0.5);
+            line-height: 1;
+        }
+        
+        .xp-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+        }
+        
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 8px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4660, #ff6b6b);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 15px rgba(255, 70, 90, 0.5);
+        }
+        
+        .goal-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .stat-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .stat-value.highlight {
+            color: #ff4660;
+        }
+        
+        .stat-label {
+            font-size: 9px;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+        
+        .job-info {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(255, 70, 90, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 70, 90, 0.2);
+        }
+        
+        .job-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+        }
+        
+        .job-label {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .job-value {
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        .not-ff {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .not-ff .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .not-ff .text {
+            font-size: 12px;
+        }
+        
+        .api-note {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255,200,50,0.1);
+            border-radius: 6px;
+            font-size: 10px;
+            color: rgba(255,200,50,0.8);
+            text-align: center;
+        }
+        
+        .footer {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: rgba(255,255,255,0.3);
+        }
+        
+        .debug-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: rgba(255,255,255,0.4);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 9px;
+        }
+        
+        .debug-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .debug-panel {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 6px;
+            font-size: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .debug-panel.show {
+            display: block;
+        }
+        
+        .debug-panel div {
+            padding: 2px 0;
+            color: rgba(255,255,255,0.6);
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">FF XP Tracker</div>
+            <div class="status" id="jobStatus">Loading...</div>
+        </div>
+        
+        <div id="ffContent">
+            <div class="main-xp">
+                <div class="xp-value" id="xpValue">0</div>
+                <div class="xp-label">Firefighter XP</div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-labels">
+                    <span>0</span>
+                    <span id="progressPercent">0%</span>
+                    <span>1M</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+            
+            <div class="goal-info">
+                <div class="stat-box">
+                    <div class="stat-value highlight" id="jobsRemaining">-</div>
+                    <div class="stat-label">Jobs Left</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="xpRemaining">-</div>
+                    <div class="stat-label">XP to Goal</div>
+                </div>
+            </div>
+            
+            <div class="job-info">
+                <div class="job-row">
+                    <span class="job-label">Current Job</span>
+                    <span class="job-value" id="currentJob">-</span>
+                </div>
+                <div class="job-row" style="margin-top: 8px;">
+                    <span class="job-label">User ID</span>
+                    <span class="job-value" id="userId">-</span>
+                </div>
+            </div>
+            
+            <div class="api-note">
+                Avg XP/job: 250 • Adjust in Settings
+            </div>
+        </div>
+        
+        <div id="notFF" class="not-ff" style="display: none;">
+            <div class="icon">🔥</div>
+            <div class="text">Switch to Firefighter job<br>to track XP</div>
+        </div>
+        
+        <div class="footer">
+            <span>Goal: 1,000,000 XP</span>
+            <button class="debug-btn" onclick="toggleDebug()">🐛</button>
+        </div>
+        
+        <div class="debug-panel" id="debugPanel">
+            <div id="debugContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const GOAL_XP = 1000000;
+        const DEFAULT_AVG_XP = 250;
+        
+        let playerData = {};
+        let avgXP = DEFAULT_AVG_XP;
+        let debugMode = false;
+        
+        // Listen for data from game client
+        window.addEventListener('message', function(event) {
+            const data = event.data;
+            if (data && data.type === 'dataUpdate') {
+                updatePlayerData(data.data);
+            }
+        });
+        
+        // Request initial data
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (window.invoke) {
+                    window.invoke('getData');
+                }
+            }, 500);
+        });
+        
+        function updatePlayerData(data) {
+            if (!data) return;
+            
+            playerData = { ...playerData, ...data };
+            
+            // Update debug
+            if (debugMode) {
+                updateDebug();
+            }
+            
+            // Get user info
+            const userId = data.user_id || data.userId || '-';
+            const job = data.job || data.job_name || '-';
+            const jobName = data.job_name || data.job || '-';
+            
+            document.getElementById('userId').textContent = userId;
+            document.getElementById('currentJob').textContent = jobName;
+            
+            // Check if Firefighter
+            const isFF = isFirefighter(data);
+            
+            document.getElementById('jobStatus').textContent = isFF ? 'FIREFIGHTER' : jobName;
+            document.getElementById('jobStatus').className = 'status ' + (isFF ? 'ff' : 'other');
+            
+            document.getElementById('ffContent').style.display = isFF ? 'block' : 'none';
+            document.getElementById('notFF').style.display = isFF ? 'none' : 'block';
+            
+            if (!isFF) return;
+            
+            // Get FF XP - try different possible keys
+            const ffXP = getFFXP(data);
+            
+            if (ffXP > 0) {
+                updateDisplay(ffXP);
+            }
+        }
+        
+        function isFirefighter(data) {
+            const job = (data.job || '').toLowerCase();
+            const jobName = (data.job_name || '').toLowerCase();
+            const subjob = (data.subjob || '').toLowerCase();
+            
+            return job === 'firefighter' || 
+                   jobName === 'firefighter' || 
+                   job.includes('fire') ||
+                   subjob.includes('fire');
+        }
+        
+        function getFFXP(data) {
+            // Try different key formats based on the docs
+            const possibleKeys = [
+                'exp_job_firefighter',
+                'exp_firefighter',
+                'firefighter_xp',
+                'xp_firefighter',
+                'ff_xp',
+                'exp_group_firefighter'
+            ];
+            
+            for (const key of possibleKeys) {
+                if (data[key] !== undefined) {
+                    return parseInt(data[key]) || 0;
+                }
+            }
+            
+            // Check all exp_ keys
+            for (const key in data) {
+                if (key.startsWith('exp_') && key.toLowerCase().includes('fire')) {
+                    return parseInt(data[key]) || 0;
+                }
+            }
+            
+            return 0;
+        }
+        
+        function updateDisplay(currentXP) {
+            document.getElementById('xpValue').textContent = currentXP.toLocaleString();
+            
+            const xpRemaining = GOAL_XP - currentXP;
+            const jobsRemaining = Math.ceil(xpRemaining / avgXP);
+            const progress = Math.min((currentXP / GOAL_XP) * 100, 100);
+            
+            document.getElementById('xpRemaining').textContent = xpRemaining.toLocaleString();
+            document.getElementById('jobsRemaining').textContent = jobsRemaining.toLocaleString();
+            document.getElementById('progressPercent').textContent = progress.toFixed(1) + '%';
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+        
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const panel = document.getElementById('debugPanel');
+            panel.classList.toggle('show', debugMode);
+            
+            if (debugMode) {
+                updateDebug();
+            }
+        }
+        
+        function updateDebug() {
+            let html = '<div><strong>All Data Keys:</strong></div>';
+            
+            const keys = Object.keys(playerData).sort();
+            for (const key of keys.slice(0, 50)) {
+                const val = playerData[key];
+                const displayVal = typeof val === 'object' ? JSON.stringify(val).substring(0, 30) : val;
+                html += `<div>${key}: ${displayVal}</div>`;
+            }
+            
+            if (keys.length > 50) {
+                html += `<div>...and ${keys.length - 50} more</div>`;
+            }
+            
+            document.getElementById('debugContent').innerHTML = html;
+        }
+        
+        // Poll for data every 2 seconds
+        setInterval(function() {
+            if (window.invoke) {
+                window.invoke('getData');
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
